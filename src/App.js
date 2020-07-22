@@ -2,11 +2,10 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 
 const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
-    // Use `useState` to maintain the state of the current phrase
-    // as well as the current partial phrase being typed
+    
     const [phrase, setPhrase] = useState(phrases[0]);
     const [letter, setLetter] = useState("");
-    const [loopNum, setLoopNum] = useState(0);
+    const [loopNum, setLoopNum] = useState(1);
     const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
@@ -19,7 +18,7 @@ const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
         };
 
         const backspace = (word) => {
-            for (let i = 0; i < word.length; i++) {
+            for (let i = 1; i <= word.length; i++) {
                 setTimeout(() => {
                     setLetter(word.slice(0, -i));
                 }, i * backspaceSpeed);
@@ -27,7 +26,6 @@ const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
         };
 
         if (letter === "" && !isDeleting) {
-            console.log("here");
             typing(phrase);
             setIsDeleting(true);
         }
@@ -36,6 +34,7 @@ const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
             setTimeout(() => {
                 backspace(phrase);
             }, 1000);
+            
             setTimeout(() => {
                 setLoopNum((ln) => ln + 1);
                 setPhrase(phrases[Number(loopNum) % Number(phrases.length)]);
@@ -43,7 +42,7 @@ const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
                 setLetter("");
             }, 3000);
         }
-    }, [phrase, letter, isDeleting, typeSpeed, backspaceSpeed, phrases]);
+    }, [phrase, letter, isDeleting, typeSpeed, backspaceSpeed, phrases, loopNum]);
 
     if (phrases.length === 0) {
         return null;
@@ -67,10 +66,10 @@ const App = () => {
             My favorite hobbies are{" "}
             <AutoTypist
                 phrases={[
-                    "playing basketball",
-                    "watching movies",
-                    "DIY",
-                    "napping",
+                    "running",
+                    "playing violin",
+                    "coding",
+                    "nom nom nom"
                 ]}
             />
         </h1>
