@@ -1,67 +1,80 @@
-import React, { useState, useEffect } from 'react'
-import PropTypes from 'prop-types'
-
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 
 const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
-  // Use `useState` to maintain the state of the current phrase
-  // as well as the current partial phrase being typed
-  const [phrase, setPhrase] = useState(phrases[0])
-  const [letter, setLetter] = useState('')
-  const typing = (word) => {
-    for (let i =0; i < word.length; i++) {
-     setLetter(l => l + word[i])
+    // Use `useState` to maintain the state of the current phrase
+    // as well as the current partial phrase being typed
+    const [phrase, setPhrase] = useState(phrases[0]);
+    const [letter, setLetter] = useState("");
+    const [loopNum, setLoopNum] = useState(0);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    useEffect(() => {
+        const typing = (word) => {
+            for (let i = 0; i < word.length; i++) {
+                setTimeout(() => {
+                    setLetter((l) => l + word[i]);
+                }, i * typeSpeed);
+            }
+        };
+
+        const backspace = (word) => {
+            for (let i = 0; i < word.length; i++) {
+                setTimeout(() => {
+                    setLetter(word.slice(0, -i));
+                }, i * backspaceSpeed);
+            }
+        };
+
+        if (letter === "" && !isDeleting) {
+            console.log("here");
+            typing(phrase);
+            setIsDeleting(true);
+        }
+
+        if (letter === phrase && isDeleting) {
+            setTimeout(() => {
+                backspace(phrase);
+            }, 1000);
+            setTimeout(() => {
+                setLoopNum((ln) => ln + 1);
+                setPhrase(phrases[Number(loopNum) % Number(phrases.length)]);
+                setIsDeleting(false);
+                setLetter("");
+            }, 3000);
+        }
+    }, [phrase, letter, isDeleting, typeSpeed, backspaceSpeed, phrases]);
+
+    if (phrases.length === 0) {
+        return null;
     }
-  }
 
-  const backspace = (word) => {
-    let i = word.length - 1
-    while (i >= 0 ) {
-      setLetter(word.slice(0, i));
-      i--
-    }
-  }
-  useEffect(() => { 
-      const intervalId = setInterval(() => {
-       typing(phrase)
-      }, typeSpeed)
-       
-    
-    return () => {
-      clearInterval(intervalId)
-    }
-  }, [])
-
-  if (phrases.length === 0) {
-    return null
-  }
-
-  const partial = phrases[0]
-
-  // Use `useEffect` to set and clear timeouts for typing and
-  // backspacing each phrase
-
-  return <span style={{ color: 'red' }}>{letter}</span>
-}
+    return <span style={{ color: "red" }}>{letter}</span>;
+};
 AutoTypist.propTypes = {
-  phrases: PropTypes.arrayOf(PropTypes.string).isRequired,
-  typeSpeed: PropTypes.number,
-  backspaceSpeed: PropTypes.number,
-}
+    phrases: PropTypes.arrayOf(PropTypes.string).isRequired,
+    typeSpeed: PropTypes.number,
+    backspaceSpeed: PropTypes.number,
+};
 AutoTypist.defaultProps = {
-  typeSpeed: 100,
-  backspaceSpeed: 25,
-}
+    typeSpeed: 100,
+    backspaceSpeed: 80,
+};
 
 const App = () => {
-  return (
-    <h1>
-      My favorite hobbies are{' '}
-      <AutoTypist
-        phrases={['playing basketball', 'watching movies', 'DIY', 'napping']}
-      />
-    </h1>
-  )
-}
+    return (
+        <h1>
+            My favorite hobbies are{" "}
+            <AutoTypist
+                phrases={[
+                    "playing basketball",
+                    "watching movies",
+                    "DIY",
+                    "napping",
+                ]}
+            />
+        </h1>
+    );
+};
 
-export default App
-
+export default App;
