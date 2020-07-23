@@ -3,16 +3,16 @@ import PropTypes from "prop-types";
 
 const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
     
-    const [phrase, setPhrase] = useState(phrases[0]);
-    const [letter, setLetter] = useState("");
-    const [loopNum, setLoopNum] = useState(1);
+    
+    const [partial, setPartial] = useState("");
+    const [loopNum, setLoopNum] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const typing = (word) => {
             for (let i = 0; i < word.length; i++) {
                 setTimeout(() => {
-                    setLetter((l) => l + word[i]);
+                    setPartial((l) => l + word[i]);
                 }, i * typeSpeed);
             }
         };
@@ -20,35 +20,34 @@ const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
         const backspace = (word) => {
             for (let i = 1; i <= word.length; i++) {
                 setTimeout(() => {
-                    setLetter(word.slice(0, -i));
+                    setPartial(word.slice(0, -i));
                 }, i * backspaceSpeed);
             }
         };
 
-        if (letter === "" && !isDeleting) {
-            typing(phrase);
+        if (partial === "" && !isDeleting) {
+            typing(phrases[Number(loopNum) % Number(phrases.length)]);
             setIsDeleting(true);
         }
 
-        if (letter === phrase && isDeleting) {
+        if (partial === phrases[Number(loopNum) % Number(phrases.length)] && isDeleting) {
             setTimeout(() => {
-                backspace(phrase);
+                backspace(phrases[Number(loopNum) % Number(phrases.length)]);
             }, 1000);
-            
+
             setTimeout(() => {
                 setLoopNum((ln) => ln + 1);
-                setPhrase(phrases[Number(loopNum) % Number(phrases.length)]);
                 setIsDeleting(false);
-                setLetter("");
+                setPartial("");
             }, 3000);
         }
-    }, [phrase, letter, isDeleting, typeSpeed, backspaceSpeed, phrases, loopNum]);
+    }, [partial, isDeleting, typeSpeed, backspaceSpeed, phrases, loopNum]);
 
     if (phrases.length === 0) {
         return null;
     }
 
-    return <span style={{ color: "red" }}>{letter}</span>;
+    return <span style={{ color: "red"}}>{partial}</span>;
 };
 AutoTypist.propTypes = {
     phrases: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -62,7 +61,7 @@ AutoTypist.defaultProps = {
 
 const App = () => {
     return (
-        <h1>
+        <h1 style={{padding: "100px"}}>
             My favorite hobbies are{" "}
             <AutoTypist
                 phrases={[
