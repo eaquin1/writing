@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 
 const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
-    
-    
     const [partial, setPartial] = useState("");
     const [loopNum, setLoopNum] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -30,7 +28,10 @@ const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
             setIsDeleting(true);
         }
 
-        if (partial === phrases[Number(loopNum) % Number(phrases.length)] && isDeleting) {
+        if (
+            partial === phrases[Number(loopNum) % Number(phrases.length)] &&
+            isDeleting
+        ) {
             setTimeout(() => {
                 backspace(phrases[Number(loopNum) % Number(phrases.length)]);
             }, 1000);
@@ -47,7 +48,7 @@ const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
         return null;
     }
 
-    return <span style={{ color: "red"}}>{partial}</span>;
+    return <span style={{ color: "red" }}>{partial}</span>;
 };
 AutoTypist.propTypes = {
     phrases: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -61,15 +62,10 @@ AutoTypist.defaultProps = {
 
 const App = () => {
     return (
-        <h1 style={{padding: "100px"}}>
+        <h1 style={{ padding: "100px" }}>
             My favorite hobbies are{" "}
             <AutoTypist
-                phrases={[
-                    "running",
-                    "playing violin",
-                    "coding",
-                    "nom nom nom"
-                ]}
+                phrases={["running", "playing violin", "coding", "nom nom nom"]}
             />
         </h1>
     );
