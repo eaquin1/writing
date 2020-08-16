@@ -1,52 +1,68 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 
-const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed }) => {
+const AutoTypist = ({ phrases, typeSpeed, backspaceSpeed, pause }) => {
+    const [states, setStates] = useState([]);
     const [partial, setPartial] = useState("");
-    const [loopNum, setLoopNum] = useState(0);
+    const [index, setIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    const init = useCallback(() => {
+        const wordsAndDelayArr = [];
+
+        //iterate over all the phrases
+        phrases.forEach((phrase) => {
+            // push "h", "he", "hel", etc
+            for (let i = 1; i <= phrase.length; i++) {
+                wordsAndDelayArr.push({
+                    text: phrase.substr(0, i),
+                    delay: typeSpeed,
+                });
+            }
+            //now backspace the word: "hello", "hell", "hel", etc
+            for (let i = phrase.length - 1; i >= 0; i--) {
+                wordsAndDelayArr.push({
+                    text: phrase.substr(0, i),
+                    delay: i === phrase.length - 1 ? pause : backspaceSpeed,
+                });
+            }
+            //push blank text
+            wordsAndDelayArr.push({ text: "", delay: typeSpeed });
+        });
+        setStates(wordsAndDelayArr);
+        console.log(wordsAndDelayArr);
+    }, [phrases, typeSpeed, backspaceSpeed, pause]);
+
+    //call init;
     useEffect(() => {
-        const typing = (word) => {
-            for (let i = 0; i < word.length; i++) {
-                setTimeout(() => {
-                    setPartial((l) => l + word[i]);
-                }, i * typeSpeed);
-            }
-        };
+        init();
+    }, [init]);
 
-        const backspace = (word) => {
-            for (let i = 1; i <= word.length; i++) {
-                setTimeout(() => {
-                    setPartial(word.slice(0, -i));
-                }, i * backspaceSpeed);
-            }
-        };
-
-        if (partial === "" && !isDeleting) {
-            typing(phrases[Number(loopNum) % Number(phrases.length)]);
-            setIsDeleting(true);
+    // in the beginning, and if loopNum changes, set timeout to schedule the next text change
+    useEffect(() => {
+        if (states.length === 0) {
+            return;
         }
+        const delay = states[index].delay;
 
-        if (
-            partial === phrases[Number(loopNum) % Number(phrases.length)] &&
-            isDeleting
-        ) {
-            setTimeout(() => {
-                backspace(phrases[Number(loopNum) % Number(phrases.length)]);
-            }, 1000);
+        //calculate the next states index
+        const nextIndex = (index + 1) % states.length;
 
-            setTimeout(() => {
-                setLoopNum((ln) => ln + 1);
-                setIsDeleting(false);
-                setPartial("");
-            }, 3000);
-        }
-    }, [partial, isDeleting, typeSpeed, backspaceSpeed, phrases, loopNum]);
+        //schedule next state
+        const timeout = setTimeout(() => {
+            const nextDelay = states[nextIndex].delay;
+            setIsDeleting(
+                nextDelay === typeSpeed || nextDelay === backspaceSpeed
+            );
+            //update displayed text
+            setPartial(states[index].text);
+            //advance to the next text state
+            setIndex(nextIndex);
+        }, delay);
 
-    if (phrases.length === 0) {
-        return null;
-    }
+        //cleanup
+        return () => clearTimeout(timeout);
+    }, [states, index, typeSpeed, backspaceSpeed, pause, phrases]);
 
     return <span style={{ color: "red" }}>{partial}</span>;
 };
@@ -56,8 +72,9 @@ AutoTypist.propTypes = {
     backspaceSpeed: PropTypes.number,
 };
 AutoTypist.defaultProps = {
-    typeSpeed: 100,
-    backspaceSpeed: 80,
+    typeSpeed: 150,
+    backspaceSpeed: 50,
+    pause: 2000,
 };
 
 const App = () => {
